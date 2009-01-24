@@ -1,0 +1,27 @@
+/*
+ * README
+ * CPlist Editor
+ *
+ * Created by Nicholas Small.
+ * Copyright 2009, 280 North, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+CPlist Editor is a Cappuccino application designed for editing Property Lists. It is very similar to the Property List Editor.app that is distributed with Apple's Developer Tools, however superior in a few ways. First, you are not required to install anything. Because it is a Cappuccino application, it runs right in your browser. Second, there are a few extra features and UI tweaks. Finally, and most importantly, it is able to read and write the 280North_v1 plist format, which Property List Editor.app cannot. This is extremely helpful for all developers of Cappuccino applications.
+
+This app is still very much a work in progress, and the code at this point is very rudimentary. Follow the commits to keep updated on things that are changing in the app.
+
+To use, just download the repo, drop in your Cappuccino Frameworks folder (or a symlink to $OBJJ_BUILD) to the root directory, and run index.html. You can then either paste the string contents of a plist file into the text area or, if you have BrowserPlus, you can use the Open option to directly import a plist file. If you do not have BrowserPlus installed, it will prompt you upon clicking Open. CPlist Editor is capable of reading and writing the following plist formats: OpenStep Format, XML Format, and 280North Format. When you have finished editing your plist, make sure you have selected the correct format in the toolbar, then click save.
