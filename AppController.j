@@ -70,6 +70,8 @@ var AddToolbarItem      = @"AddToolbarItem",
     [_inputView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
     [_editorView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
     [_editorView setHidden:YES];
+    [_inputView setBackgroundColor:[CPColor redColor]];
+    [_editorView setBackgroundColor:[CPColor greenColor]];
     [contentView addSubview:_inputView];
     [contentView addSubview:_editorView];
     
@@ -187,10 +189,14 @@ var AddToolbarItem      = @"AddToolbarItem",
 
 - (void)resetUI
 {
+    [_toolbar setVisible:NO];
+    
+    // var bounds = 
+    // [_inputView setFrame:CGRectMake(0.0, 0.0, )]
+    
     [_inputView setHidden:NO];
     [_editorView setHidden:YES];
     [_collection setContent:nil];
-    [_toolbar setVisible:NO];
     
     [_label setStringValue:@"Plist String (or blank):"];
     [_label setTextColor:[CPColor blackColor]];
@@ -222,6 +228,7 @@ var AddToolbarItem      = @"AddToolbarItem",
                         {
                             BrowserPlus.FileAccess.Read({file:file},function(args){
                                 [_stringField setStringValue:args.value];
+                                // [self submit:self];
                             })
                         }
                     });
@@ -464,7 +471,29 @@ var AddToolbarItem      = @"AddToolbarItem",
 - (void)mouseDown:(CPEvent)anEvent
 {
     [[self superview] mouseDown:anEvent];
-    [super mouseDown:anEvent];
+    
+    if(_inlineEditable && [anEvent clickCount] > 1)
+    {
+        [self setEditable:YES];
+        [self setBordered:YES];
+        [self setBezeled:YES];
+        [self setBezelStyle:CPTextFieldSquareBezel];
+        
+        [super mouseDown:anEvent];
+        
+        [[self window] makeFirstResponder:self];
+        
+        [self selectText:self];
+    }
+}
+
+- (BOOL)resignFirstResponder
+{
+    [self setEditable:NO];
+    [self setBordered:NO];
+    [self setBezeled:NO];
+    
+    return [super resignFirstResponder];
 }
 
 @end
