@@ -70,8 +70,6 @@ var AddToolbarItem      = @"AddToolbarItem",
     [_inputView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
     [_editorView setAutoresizingMask:CPViewWidthSizable | CPViewHeightSizable];
     [_editorView setHidden:YES];
-    [_inputView setBackgroundColor:[CPColor redColor]];
-    [_editorView setBackgroundColor:[CPColor greenColor]];
     [contentView addSubview:_inputView];
     [contentView addSubview:_editorView];
     
@@ -191,9 +189,6 @@ var AddToolbarItem      = @"AddToolbarItem",
 {
     [_toolbar setVisible:NO];
     
-    // var bounds = 
-    // [_inputView setFrame:CGRectMake(0.0, 0.0, )]
-    
     [_inputView setHidden:NO];
     [_editorView setHidden:YES];
     [_collection setContent:nil];
@@ -201,7 +196,7 @@ var AddToolbarItem      = @"AddToolbarItem",
     [_label setStringValue:@"Plist String (or blank):"];
     [_label setTextColor:[CPColor blackColor]];
     [_stringField setStringValue:@""];
-    [_plistType selectItemAtIndex:2];
+    // [_plistType selectItemAtIndex:2];
     
     [CPMenu setMenuBarTitle:@"CPlist Editor"];
 }
@@ -241,7 +236,9 @@ var AddToolbarItem      = @"AddToolbarItem",
 {
     [self resetUI];
     
-    var data = [CPPropertyListSerialization dataFromPropertyList:_plist format:CPPropertyList280NorthFormat_v1_0 errorDescription:@""];
+    var format = [[[[_toolbar._identifierItems objectForKey:FormatToolbarItem] view] selectedItem] tag];
+    console.log(format)
+    var data = [CPPropertyListSerialization dataFromPropertyList:_plist format:format errorDescription:@""];
     [_stringField setStringValue:[data string]];
 }
 
@@ -313,9 +310,9 @@ var AddToolbarItem      = @"AddToolbarItem",
     {
         var popup = [[CPPopUpButton alloc] initWithFrame:CGRectMake(0.0, 0.0, 150.0, 20.0) pullsDown:NO];
         [popup addItemsWithTitles:[@"OpenStep Format", @"XML Format", @"280North Format"]];
-        [[popup itemAtIndex:0] setTag:kCFPropertyListOpenStepFormat];
-        [[popup itemAtIndex:1] setTag:kCFPropertyListXMLFormat_v1_0];
-        [[popup itemAtIndex:2] setTag:kCFPropertyList280NorthFormat_v1_0];
+        [[popup itemAtIndex:0] setTag:CPPropertyListOpenStepFormat];
+        [[popup itemAtIndex:1] setTag:CPPropertyListXMLFormat_v1_0];
+        [[popup itemAtIndex:2] setTag:CPPropertyList280NorthFormat_v1_0];
         [popup selectItemAtIndex:2];
         
         item = [[CPToolbarItem alloc] initWithItemIdentifier:FormatToolbarItem];
