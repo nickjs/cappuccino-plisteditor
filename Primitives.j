@@ -37,6 +37,11 @@
     return [CPBoolean booleanWithString:self];
 }
 
+- (CPString)stringValue
+{
+    return self;
+}
+
 @end
 
 @implementation CPNumber (CastingHelpers)
@@ -55,6 +60,11 @@
 - (CPBoolean)booleanValue
 {
     return [CPBoolean booleanWithNumber:self];
+}
+
+- (CPNumber)numberValue
+{
+    return self;
 }
 
 @end

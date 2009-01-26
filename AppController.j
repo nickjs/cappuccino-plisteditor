@@ -658,7 +658,7 @@ var keyExistsAlert = nil;
         }
         else
         {
-            _value = [CPString stringWithString:@""];
+            _value = [CPString stringWithString:@"string"];
         }
         
     if(newClass == CPString)
