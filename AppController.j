@@ -334,7 +334,41 @@ var AddToolbarItem      = @"AddToolbarItem",
 
 - (void)addItem:(id)sender
 {
+    var index = [[_collection selectionIndexes] firstIndex],
+        parent = [_auxArray[index] objectForKey:@"parent"];
+        
+    if(!parent)
+        return;
+                
+    var value = [CPString stringWithString:@"string"],
+        aux = [CPDictionary dictionary];
+        
+    [aux setObject:parent forKey:@"parent"];
+    [aux setObject:[_auxArray[index] objectForKey:@"rowIndex"] forKey:@"rowIndex"];
     
+    if([parent class] == CPDictionary)
+    {
+        var key = @"New item " + [parent count];
+        [aux setObject:YES forKey:@"keyEditable"];
+        [parent setObject:value forKey:key];
+    }
+    else if([parent class] == CPArray)
+    {
+        var key = @"Item " + (index + 1);
+        [aux setObject:NO forKey:@"keyEditable"];
+        [parent insertObject:value atIndex:index + 1];
+        
+        var count = [_auxArray count]
+        for(var i=index+1; i < count; i++)
+            if([_auxArray[i] objectForKey:@"parent"] === parent)
+                _keyArray[i] = @"Item " + (i + index);
+            else
+                break;
+    }
+    
+    [_keyArray insertObject:key atIndex:index + 1];
+    [_valueArray insertObject:value atIndex:index + 1];
+    [_auxArray insertObject:aux atIndex:index + 1];
 }
 
 - (void)addChild:(id)sender

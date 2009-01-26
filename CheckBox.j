@@ -39,7 +39,7 @@ var checkboxImage,
     
     checkboxImage = [[CPImage alloc] initWithContentsOfFile:[bundle pathForResource:@"CheckBox/CheckBox.png"] size:CGSizeMake(14.0, 15.0)],
     checkboxAlternateImage = [[CPImage alloc] initWithContentsOfFile:[bundle pathForResource:@"CheckBox/CheckBoxH.png"] size:CGSizeMake(14.0, 15.0)],
-    checkboxCheckedImage = [[CPImage alloc] initWithContentsOfFile:[bundle pathForResource:@"Checkbox/CheckBoxChecked.png"] size:CGSizeMake(14.0, 15.0)],
+    checkboxCheckedImage = [[CPImage alloc] initWithContentsOfFile:[bundle pathForResource:@"CheckBox/CheckBoxChecked.png"] size:CGSizeMake(14.0, 15.0)],
     checkboxCheckedAlternateImage = [[CPImage alloc] initWithContentsOfFile:[bundle pathForResource:@"CheckBox/CheckBoxCheckedH.png"] size:CGSizeMake(14.0, 15.0)];
 }
 
