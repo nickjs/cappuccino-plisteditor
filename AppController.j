@@ -531,25 +531,48 @@ var keyExistsAlert = nil;
     [_keyField setEditAction:@selector(setKey:)];
     [_keyField setTextColor:editable ? [CPColor blackColor] : [CPColor grayColor]];
     
-    editable = [_value respondsToSelector:@selector(count)];
-    
-    var className = [_value class];
-    
-    if(editable || className == CPData || className == CPDate)
+    if([_value class] == CPBoolean)
     {
-        if(editable)
-            [_valueField setStringValue:@"(" + [_value count] + " items)"];
-        else
-            [_valueField setStringValue:[_value string]];
+        if(!_valueToggle)
+        {
+            var frame = CGRectMakeCopy([_valueField frame]);
+            frame.origin.x += 4.0;
+            frame.origin.y += 1.0;
+            
+            _valueToggle = [[CheckBox alloc] initWithFrame:frame];
+            [_valueToggle setTitle:@""];
+            [self addSubview:_valueToggle];
+        }
         
-        [_valueField setInlineEditable:NO];
-        [_valueField setTextColor:[CPColor grayColor]];
+        [_valueField setHidden:YES];
+        [_valueToggle setHidden:NO];
+        [_valueToggle setChecked:[_value boolValue]];
     }
     else
     {
-        [_valueField setStringValue:_value];
-        [_valueField setInlineEditable:YES];
-        [_valueField setTextColor:[CPColor blackColor]];
+        editable = [_value respondsToSelector:@selector(count)];
+        var className = [_value class];
+        
+        if(editable || className == CPData || className == CPDate)
+        {
+            if(editable)
+                [_valueField setStringValue:@"(" + [_value count] + " items)"];
+            else
+                [_valueField setStringValue:[_value string]];
+            
+            [_valueField setInlineEditable:NO];
+            [_valueField setTextColor:[CPColor grayColor]];
+        }
+        else
+        {
+            [_valueField setStringValue:_value];
+            [_valueField setInlineEditable:YES];
+            [_valueField setTextColor:[CPColor blackColor]];
+        }
+        
+        [_valueField setHidden:NO];
+        if(_valueToggle)
+            [_valueToggle setHidden:YES];
     }
 }
 
