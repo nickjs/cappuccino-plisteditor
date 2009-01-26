@@ -63,6 +63,12 @@ var checkboxImage,
     return self;
 }
 
+- (void)mouseDown:(CPEvent)anEvent
+{
+    [[self superview] mouseDown:anEvent];
+    [super mouseDown:anEvent];
+}
+
 - (void)mouseUp:(CPEvent)anEvent
 {
     [super mouseUp: anEvent];

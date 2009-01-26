@@ -496,7 +496,7 @@ var keyExistsAlert = nil;
     
     if(!_typeField)
     {
-        _typeField = [[CPPopUpButton alloc] initWithFrame:CGRectMake(218.0, 0.0, 100.0, 20.0)];
+        _typeField = [[PopUpButton alloc] initWithFrame:CGRectMake(218.0, 0.0, 100.0, 20.0)];
         [_typeField addItemsWithTitles:[@"Array", @"Dictionary", @"String", @"Data", @"Date", @"Number", @"Boolean"]];
         [[_typeField itemAtIndex:0] setTag:[CPArray class]];
         [[_typeField itemAtIndex:1] setTag:[CPDictionary class]];
@@ -638,6 +638,16 @@ var keyExistsAlert = nil;
         _value = [_value booleanValue];
     
     [self updateValues];
+}
+
+@end
+
+@implementation PopUpButton : CPPopUpButton
+
+- (void)mouseDown:(CPEvent)anEvent
+{
+    [[self superview] mouseDown:anEvent];
+    [super mouseDown:anEvent];
 }
 
 @end
