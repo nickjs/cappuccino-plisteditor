@@ -45,7 +45,8 @@
         
         [[self window] makeFirstResponder:self];
         
-        [self selectText:self];
+        // FIXME: Breaks Safari?
+        // [self selectText:self];
     }
 }
 
