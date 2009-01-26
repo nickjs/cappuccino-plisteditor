@@ -142,6 +142,9 @@ var AddToolbarItem      = @"AddToolbarItem",
             aKey = @"Root";
     }
     
+    if(theObject === true || theObject === false)
+        theObject = [CPBoolean booleanWithBoolean:theObject];
+    
     [_keyArray addObject:aKey];
     [_valueArray addObject:theObject];
     [_auxArray addObject:aux];
@@ -499,7 +502,7 @@ var keyExistsAlert = nil;
         [[_typeField itemAtIndex:3] setTag:[CPData class]];
         [[_typeField itemAtIndex:4] setTag:[CPDate class]];
         [[_typeField itemAtIndex:5] setTag:[CPNumber class]];
-        [[_typeField itemAtIndex:6] setTag:@"BOOL"];
+        [[_typeField itemAtIndex:6] setTag:[CPBoolean class]];
         [[_typeField menu] insertItem:[CPMenuItem separatorItem] atIndex:2];
         [_typeField setBordered:NO];
         [_typeField setTarget:self];
@@ -527,6 +530,7 @@ var keyExistsAlert = nil;
     [_keyField setTextColor:editable ? [CPColor blackColor] : [CPColor grayColor]];
     
     editable = [_value respondsToSelector:@selector(count)];
+    
     var className = [_value class];
     
     if(editable || className == CPData || className == CPDate)
