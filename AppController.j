@@ -192,8 +192,6 @@ var AddToolbarItem      = @"AddToolbarItem",
 
 - (void)openDocument:(id)sender
 {
-    [self newDocument:self];
-    
     BrowserPlus.init(function(r){
         if(r.success)
         BrowserPlus.require({
@@ -207,6 +205,7 @@ var AddToolbarItem      = @"AddToolbarItem",
                         if(file)
                         {
                             BrowserPlus.FileAccess.Read({file:file},function(args){
+                                [self newDocument:self];
                                 [_stringField setStringValue:args.value];
                                 // [self submit:self];
                             })
