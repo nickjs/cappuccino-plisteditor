@@ -25,6 +25,7 @@
 
 @import "CheckBox.j"
 @import "InlineEditor.j"
+@import "Primitives.j"
 @import "TextView.j"
 
 
@@ -413,6 +414,7 @@ var keyExistsAlert = nil;
 {
     CPTextField     _keyField;
     CPTextField     _valueField;
+    CPCheckBox      _valueToggle;
     CPPopUpButton   _typeField;
     CPView          _divider;
     CPView          _border;
@@ -594,23 +596,23 @@ var keyExistsAlert = nil;
         
     if(oldClass == newClass)
         return;
-
-    if(newClass == CPString)
-    {
-        if(oldClass == CPNumber)
-            _value = [_value stringValue];
-    }
-    else if(newClass == CPNumber)
-    {
-        if(oldClass == CPString)
+    
+    if(oldClass == CPDictionary || oldClass == CPArray)
+        if(newClass == CPDictionary || newClass == CPArray)
         {
-            var newValue = [_value floatValue];
-            if(newValue)
-                _value = newValue;
-            else
-                _value = [CPNumber numberWithInt:0];
+            // FIXME: Do something
         }
-    }
+        else
+        {
+            _value = [CPString stringWithString:@""];
+        }
+        
+    if(newClass == CPString)
+        _value = [_value stringValue];
+    else if(newClass == CPNumber)
+        _value = [_value numberValue];
+    else if(newClass == CPBoolean)
+        _value = [_value booleanValue];
     
     [self updateValues];
 }

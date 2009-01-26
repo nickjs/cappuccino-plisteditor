@@ -25,6 +25,44 @@
 @import <Foundation/CPString.j>
 
 
+@implementation CPString (CastingHelpers)
+
+- (CPNumber)numberValue
+{
+    return [CPNumber numberWithString:self];
+}
+
+- (CPBoolean)booleanValue
+{
+    return [CPBoolean booleanWithString:self];
+}
+
+@end
+
+@implementation CPNumber (CastingHelpers)
+
++ (CPNumber)numberWithString:(CPString)aString
+{
+    return [[CPNumber alloc] initWithString:aString];
+}
+
+- (CPNumber)initWithString:(CPString)aString
+{
+    var number = [aString doubleValue];
+    
+    if(number)
+        return [CPNumber numberWithDouble:number];
+    else
+        return [CPNumber numberWithDouble:0];
+}
+
+- (CPBoolean)booleanValue
+{
+    return [CPBoolean booleanWithNumber:self];
+}
+
+@end
+
 @implementation CPBoolean : CPObject
 {
     BOOL    _bool;
@@ -70,10 +108,7 @@
     self = [self init];
     
     if(self)
-        if(aNumber < 1)
-            _bool = false;
-        else
-            _bool = true;
+        _bool = (aNumber < 1) ? false : true;
     
     return self;
 }
@@ -83,10 +118,7 @@
     self = [self init];
     
     if(self)
-        if([aString lowercaseString] == @"true")
-            _bool = true;
-        else
-            _bool = false;
+        _bool = ([aString lowercaseString] == @"true") ? true : false;
     
     return self;
 }
@@ -103,18 +135,12 @@
 
 - (CPNumber)numberValue
 {
-    if(_bool)
-        return [CPNumber numberWithInt:1];
-    else
-        return [CPNumber numberWithInt:0];
+    return _bool ? [CPNumber numberWithInt:1] : [CPNumber numberWithInt:0]
 }
 
 - (CPString)stringValue
 {
-    if(_bool)
-        return [CPString stringWithString:@"True"];
-    else
-        return [CPString stringWithString:@"False"];
+    return _bool ? [CPString stringWithString:@"true"] : [CPString stringWithString:@"false"]
 }
 
 @end
