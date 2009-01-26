@@ -600,21 +600,36 @@ var keyExistsAlert = nil;
     if(newValue == _key)
         return;
     
-    if(_parent && ([_parent objectForKey:newValue] || [_parent objectForKey:newValue] === false))
-        [keyExistsAlert runModal];
-    else
+    var proceed = true;
+    if(_parent)
     {
-        if(_parent)
+        var returnedObject = [_parent objectForKey:newValue];
+        
+        if(returnedObject || returnedObject == false)
+            proceed = false;
+        else
         {
             [_parent removeObjectForKey:_key]
             [_parent setObject:_value forKey:newValue];
         }
-        
+    }
+    
+    if(proceed)
+    {
         _keyArray[index] = [sender stringValue];
         _key = _keyArray[index];
     }
+    else
+    {
+        [keyExistsAlert runModal];
+    }
     
     [self updateValues];
+}
+
+- (void)setValue:(id)sender
+{
+    console.log(sender);
 }
 
 - (void)setType:(id)sender
