@@ -635,6 +635,9 @@ var keyExistsAlert = nil;
     if(newValue == _value)
         return;
     
+    _value = ([_value class] == CPNumber) ? [newValue numberValue] : newValue;
+    
+    [self updateValues];
 }
 
 - (void)setType:(id)sender

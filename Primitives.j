@@ -49,11 +49,7 @@
 - (CPNumber)initWithString:(CPString)aString
 {
     var number = [aString doubleValue];
-    
-    if(number)
-        return [CPNumber numberWithDouble:number];
-    else
-        return [CPNumber numberWithDouble:0];
+    return number ? [CPNumber numberWithDouble:number] : [CPNumber numberWithDouble:0];
 }
 
 - (CPBoolean)booleanValue
