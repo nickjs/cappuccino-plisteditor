@@ -564,6 +564,9 @@ var keyExistsAlert = nil;
 {
     var newValue = [sender stringValue];
     
+    if(newValue == _key)
+        return;
+    
     if(_parent && [_parent objectForKey:newValue])
         [keyExistsAlert runModal];
     else
@@ -579,13 +582,15 @@ var keyExistsAlert = nil;
     }
     
     [self updateValues];
-    console.log([_parent allKeys])
 }
 
 - (void)setType:(id)sender
 {
     var oldClass = [_value class],
         newClass = [[sender selectedItem] tag];
+        
+    if(oldClass == newClass)
+        return;
 
     if(newClass == CPString)
     {
@@ -595,7 +600,13 @@ var keyExistsAlert = nil;
     else if(newClass == CPNumber)
     {
         if(oldClass == CPString)
-            _value = [_value floatValue];
+        {
+            var newValue = [_value floatValue];
+            if(newValue)
+                _value = newValue;
+            else
+                _value = [CPNumber numberWithInt:0];
+        }
     }
     
     [self updateValues];
