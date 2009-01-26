@@ -22,36 +22,34 @@
 
 @import <Foundation/CPObject.j>
 @import <AppKit/CPView.j>
-@import "CPTextView.j"
+
+@import "CheckBox.j"
+@import "InlineEditor.j"
+@import "TextView.j"
+
 
 var AddToolbarItem      = @"AddToolbarItem",
     AddChildToolbarItem = @"AddChildToolbarItem",
     DeleteToolbarItem   = @"DeleteToolbarItem",
     UndoToolbarItem     = @"UndoToolbarItem",
     RedoToolbarItem     = @"RedoToolbarItem",
-    FormatToolbarItem   = @"FormatToolbarItem",
-    AddItemImage        = nil,
-    AddChildItemImage   = nil;
+    FormatToolbarItem   = @"FormatToolbarItem";
 
 
 @implementation AppController : CPObject
 {
     CPView          _inputView;
     CPView          _editorView;
-    CPTextView      _stringField;
+    CPAlert         _installAlert;
     CPToolbar       _toolbar;
+    
     CPTextField     _label;
-    CPPopUpButton   _plistType;
+    TextView        _stringField;
+    CPCollectionView _collection;
     
     CPString        _plistString;
+    int             _plistType;
     id              _plist;
-    CPArray         _plistArray;
-}
-
-+ (void)initialize
-{
-    AddItemImage = [[CPImage alloc] initWithContentsOfFile:@"Resources/AddItem.png" size:CGSizeMake(32.0, 32.0)];
-    AddChildItemImage = [[CPImage alloc] initWithContentsOfFile:@"Resources/AddChildItem.png" size:CGSizeMake(32.0, 32.0)];
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -86,7 +84,7 @@ var AddToolbarItem      = @"AddToolbarItem",
     [stringScroll setAutohidesScrollers:YES];
     [_inputView addSubview:stringScroll];
     
-    _stringField = [[CPTextView alloc] initWithFrame:CGRectMake(0.0, 0.0, 400.0, 250.0)];
+    _stringField = [[TextView alloc] initWithFrame:CGRectMake(0.0, 0.0, 400.0, 250.0)];
     [stringScroll setDocumentView:_stringField];
     
     var submit = [[CPButton alloc] initWithFrame:CGRectMake(CGRectGetWidth(bounds)/2 + 100.0, 325.0, 100.0, 18.0)];
@@ -127,61 +125,42 @@ var AddToolbarItem      = @"AddToolbarItem",
     [self newDocument:self];
 }
 
-- (void)submit:(id)sender
+- (void)traversePlist:(id)theObject key:(CPString)aKey parent:(id)theParent rowIndex:(int)rowIndex
 {
-    _plistString = [_stringField stringValue];
+    var aux = [CPDictionary dictionary];
+    [aux setObject:theParent forKey:@"parent"];
+    [aux setObject:rowIndex forKey:@"rowIndex"];
+    [aux setObject:YES forKey:@"keyEditable"];
     
-    if([_plistString length] == 0)
+    if(!aKey)
     {
-        var root = [CPDictionary dictionary];
-        _plistString = [[CPPropertyListSerialization dataFromPropertyList:root format:CPPropertyList280NorthFormat_v1_0 errorDescription:@""] string];
+        [aux setObject:NO forKey:@"keyEditable"];
+        
+        if(theParent && [theParent class] == CPArray)
+            aKey = @"Item " + [theParent indexOfObjectIdenticalTo:theObject];
+        else
+            aKey = @"Root";
     }
     
-    var data;
-    if(_plistString)
-        data = [CPData dataWithString:_plistString];
+    [_keyArray addObject:aKey];
+    [_valueArray addObject:theObject];
+    [_auxArray addObject:aux];
     
-    if(data)
-        _plist = [CPPropertyListSerialization propertyListFromData:data format:nil errorDescription:@""];
-    else
-        _plist = nil;
-        
-    if(_plist)
-    {
-        [CPMenu setMenuBarTitle:@"Plist From String"];
-        
-        _plistArray = [CPArray array];
-        [self createRowWithObject:_plist key:@"Root" atIndex:0 keyEditable:NO];
-        [_collection setContent:_plistArray];
-        
-        [_inputView setHidden:YES];
-        [_editorView setHidden:NO];
-        [_toolbar setVisible:YES];
-    }
-    else
-    {
-        [_label setStringValue:@"Plist is Invalid!"];
-        [_label setTextColor:[CPColor redColor]];
-    }
-}
-
-- (void)createRowWithObject:(id)anObject key:(CPString)key atIndex:(int)rowIndex keyEditable:(BOOL)editable
-{
-    var arrayIndex = [_plistArray count],
-        className = [anObject class];
-    
-    _plistArray[arrayIndex] = [rowIndex, key, anObject, editable];
-    
+    var className = [theObject class];
     if(className == CPDictionary)
     {
-        var keys = [anObject allKeys];
-        for(var i = 0; i < keys.length; i++)
-            [self createRowWithObject:[anObject objectForKey:keys[i]] key:keys[i] atIndex:rowIndex + 1 keyEditable:YES];
+        var keys = [theObject allKeys],
+            count = [keys count];
+            
+        for(var i = 0; i < count; i++)
+            [self traversePlist:[theObject objectForKey:keys[i]] key:keys[i] parent:theObject rowIndex:rowIndex + 1];
     }
     else if(className == CPArray)
     {
-        for(var i = 0; i < anObject.length; i++)
-            [self createRowWithObject:anObject[i] key:@"Item " + i atIndex:rowIndex + 1 keyEditable:NO];
+        var count = [theObject count];
+        
+        for(var i = 0; i < count; i++)
+            [self traversePlist:theObject[i] key:nil parent:theObject rowIndex:rowIndex + 1];
     }
 }
 
@@ -196,7 +175,6 @@ var AddToolbarItem      = @"AddToolbarItem",
     [_label setStringValue:@"Plist String (or blank):"];
     [_label setTextColor:[CPColor blackColor]];
     [_stringField setStringValue:@""];
-    // [_plistType selectItemAtIndex:2];
     
     [CPMenu setMenuBarTitle:@"CPlist Editor"];
 }
@@ -204,13 +182,20 @@ var AddToolbarItem      = @"AddToolbarItem",
 - (void)newDocument:(id)sender
 {
     [self resetUI];
+    
+    _keyArray = nil;
+    _valueArray = nil;
+    _auxArray = nil;
+    _plist = nil;
+    _plistString = nil;
 }
 
 - (void)openDocument:(id)sender
 {
     [self newDocument:self];
     
-    BPTool.Installer.show({}, function(){
+    BrowserPlus.init(function(r){
+        if(r.success)
         BrowserPlus.require({
             services: [{service: 'FileAccess', version: "1"},{service: 'FileBrowse'}]},
             function(res){
@@ -229,6 +214,19 @@ var AddToolbarItem      = @"AddToolbarItem",
                     });
                 }
             });
+        else
+        {
+            if(!_installAlert)
+            {
+                _installAlert = [[CPAlert alloc] init];
+                [_installAlert setMessageText:@"This feature requires the simple plugin, Yahoo! BrowserPlus."];
+                [_installAlert addButtonWithTitle:@"Install!"];
+                [_installAlert addButtonWithTitle:@"Cancel"];
+                [_installAlert setDelegate:self];
+            }
+            
+            [_installAlert runModal];
+        }
     });
 }
 
@@ -236,10 +234,58 @@ var AddToolbarItem      = @"AddToolbarItem",
 {
     [self resetUI];
     
-    var format = [[[[_toolbar._identifierItems objectForKey:FormatToolbarItem] view] selectedItem] tag];
-    console.log(format)
-    var data = [CPPropertyListSerialization dataFromPropertyList:_plist format:format errorDescription:@""];
+    var data = [CPPropertyListSerialization dataFromPropertyList:_plist format:_plistType errorDescription:@""];
     [_stringField setStringValue:[data string]];
+    
+    window.open('data:text/html;charset=utf-8,'+encodeURIComponent([data string]));
+}
+
+- (void)submit:(id)sender
+{
+    _plistString = [_stringField stringValue];
+    _plist = nil;
+    
+    if([_plistString length] == 0)
+    {
+        _plist = [CPDictionary dictionary];
+    }
+    else
+    {
+        var data;
+        if(_plistString)
+            data = [CPData dataWithString:_plistString];
+    
+        if(data)
+            _plist = [CPPropertyListSerialization propertyListFromData:data format:nil errorDescription:@""];
+    }
+        
+    if(_plist)
+    {
+        _keyArray = [CPArray array];
+        _valueArray = [CPArray array];
+        _auxArray = [CPArray array];
+        
+        [CPMenu setMenuBarTitle:@"Plist From String"];
+        
+        [self traversePlist:_plist key:nil parent:nil rowIndex:0];
+        
+        var array = [CPArray array],
+            count = [_keyArray count];
+            
+        for(var i=0; i < count; i++)
+            array[i] = i;
+            
+        [_collection setContent:array];
+        
+        [_inputView setHidden:YES];
+        [_editorView setHidden:NO];
+        [_toolbar setVisible:YES];
+    }
+    else
+    {
+        [_label setStringValue:@"Plist is Invalid!"];
+        [_label setTextColor:[CPColor redColor]];
+    }
 }
 
 - (void)addItem:(id)sender
@@ -250,6 +296,26 @@ var AddToolbarItem      = @"AddToolbarItem",
 - (void)addChild:(id)sender
 {
     
+}
+
+- (void)deleteItem:(id)sender
+{
+    
+}
+
+- (void)undo:(id)sender
+{
+    
+}
+
+- (void)redo:(id)sender
+{
+    
+}
+
+- (void)setFormat:(id)sender
+{
+    _plistType = [[sender selectedItem] tag];
 }
 
 - (CPArray)toolbarDefaultItemIdentifiers:(CPToolbar)aToolbar
@@ -315,35 +381,66 @@ var AddToolbarItem      = @"AddToolbarItem",
         [[popup itemAtIndex:2] setTag:CPPropertyList280NorthFormat_v1_0];
         [popup selectItemAtIndex:2];
         
+        _plistType = [[popup itemAtIndex:2] tag];
+        
         item = [[CPToolbarItem alloc] initWithItemIdentifier:FormatToolbarItem];
         [item setMinSize:CGSizeMake(150.0, 20.0)];
         [item setMaxSize:CGSizeMake(150.0, 20.0)];
         [item setView:popup];
-        [item setTarget:nil];
+        [item setTarget:self];
+        [item setAction:@selector(setFormat:)]
         [item setLabel:@"Format"];
     }
     
     return item;
 }
 
+- (void)alertDidEnd:(CPAlert)anAlert returnCode:(int)returnCode
+{
+    if(returnCode == 0)
+        window.open(@"http://browserplus.yahoo.com/install/");
+}
+
 @end
+
+
+var grayColor = nil;
+var keyExistsAlert = nil;
 
 @implementation RowView : CPView
 {
-    CPTextField     _key;
-    CPTextField     _value;
-    CPPopUpButton   _type;
+    CPTextField     _keyField;
+    CPTextField     _valueField;
+    CPPopUpButton   _typeField;
     CPView          _divider;
     CPView          _border;
     
-    id              _object;
+    CPString        _key;
+    id              _value;
+    id              _parent;
+    int             _rowIndex;
+    int             index;
 }
 
-- (void)setRepresentedObject:(id)anObject
++ (void)initialize
 {
-    var x = anObject[0] * 20.0,
-        grayColor = [CPColor colorWithHexString:@"CCCCCC"];
-    _object = anObject;
+    grayColor = [CPColor colorWithHexString:@"CCCCCC"];
+
+    keyExistsAlert = [[CPAlert alloc] init];
+    [keyExistsAlert setMessageText:@"Key already exists in this parent! Please choose a different key."];
+    [keyExistsAlert addButtonWithTitle:@"I'm Sorry"];
+}
+
+- (void)setRepresentedObject:(int)theIndex
+{
+    index = theIndex;
+    _key = _keyArray[index];
+    _value = _valueArray[index];
+    
+    _parent = [_auxArray[index] objectForKey:@"parent"];
+    _rowIndex = [_auxArray[index] objectForKey:@"rowIndex"];
+    
+    var x = _rowIndex * 20.0;
     
     if(_divider)
     {
@@ -356,9 +453,9 @@ var AddToolbarItem      = @"AddToolbarItem",
         _divider = [[CPView alloc] initWithFrame:CGRectMake(0.0, 0.0, x, 20.0)];
         [self addSubview:_divider];
         
-        for(var i = 0; i < anObject[0]; i++)
+        for(var i = 0; i < _rowIndex; i++)
         {
-            var view = [[CPView alloc] initWithFrame:CGRectMake(10 + i * 20.0, 0.0, 1.0, 20.0)];
+            var view = [[CPView alloc] initWithFrame:CGRectMake(10.0 + i * 20.0, 0.0, 1.0, 20.0)];
             [view setBackgroundColor:grayColor];
             [_divider addSubview:view];
         }
@@ -380,57 +477,74 @@ var AddToolbarItem      = @"AddToolbarItem",
         [self addSubview:_border];
     }
     
-    if(_key)
+    if(_keyField)
     {
-        [_key removeFromSuperview];
-        _key = nil;
+        [_keyField removeFromSuperview];
+        _keyField = nil;
     }
     
-    if(!_key)
+    if(!_keyField)
     {
-        _key = [[TextField alloc] initWithFrame:CGRectMake(x, 0.0, 200.0 - x, 20.0)];
-        [self addSubview:_key];
+        _keyField = [[InlineEditor alloc] initWithFrame:CGRectMake(x, 0.0, 200.0 - x, 20.0)];
+        [_keyField setEditTarget:self];
+        [self addSubview:_keyField];
     }
     
-    if(!_type)
+    if(!_typeField)
     {
-        _type = [[CPPopUpButton alloc] initWithFrame:CGRectMake(218.0, 0.0, 100.0, 20.0)];
-        [_type addItemsWithTitles:[@"Array", @"Dictionary", @"String", @"Data", @"Date", @"Number", @"Boolean"]];
-        [[_type itemAtIndex:0] setTag:@"CPArray"];
-        [[_type itemAtIndex:1] setTag:@"CPDictionary"];
-        [[_type itemAtIndex:2] setTag:@"CPString"];
-        [[_type itemAtIndex:3] setTag:@"CPData"];
-        [[_type itemAtIndex:4] setTag:@"CPDate"];
-        [[_type itemAtIndex:5] setTag:@"CPNumber"];
-        [[_type itemAtIndex:6] setTag:@"BOOL"];
-        [[_type menu] insertItem:[CPMenuItem separatorItem] atIndex:2];
-        [_type setBordered:NO];
-        [self addSubview:_type];
+        _typeField = [[CPPopUpButton alloc] initWithFrame:CGRectMake(218.0, 0.0, 100.0, 20.0)];
+        [_typeField addItemsWithTitles:[@"Array", @"Dictionary", @"String", @"Data", @"Date", @"Number", @"Boolean"]];
+        [[_typeField itemAtIndex:0] setTag:[CPArray class]];
+        [[_typeField itemAtIndex:1] setTag:[CPDictionary class]];
+        [[_typeField itemAtIndex:2] setTag:[CPString class]];
+        [[_typeField itemAtIndex:3] setTag:[CPData class]];
+        [[_typeField itemAtIndex:4] setTag:[CPDate class]];
+        [[_typeField itemAtIndex:5] setTag:[CPNumber class]];
+        [[_typeField itemAtIndex:6] setTag:@"BOOL"];
+        [[_typeField menu] insertItem:[CPMenuItem separatorItem] atIndex:2];
+        [_typeField setBordered:NO];
+        [_typeField setTarget:self];
+        [_typeField setAction:@selector(setType:)];
+        [self addSubview:_typeField];
     }
     
-    if(!_value)
+    if(!_valueField)
     {
-        _value = [[TextField alloc] initWithFrame:CGRectMake(320.0, 0.0, 500.0, 20.0)];
-        [self addSubview:_value];
+        _valueField = [[InlineEditor alloc] initWithFrame:CGRectMake(320.0, 0.0, 500.0, 20.0)];
+        [self addSubview:_valueField];
     }
     
-    [_key setStringValue:anObject[1]];
-    [_type selectItemWithTag:[anObject[2] className]];
+    [self updateValues];
+}
+
+- (void)updateValues
+{
+    [_keyField setStringValue:_key];
+    [_typeField selectItemWithTag:[_value class]];
     
-    [_key setInlineEditable:anObject[3]];
-    [_key setTextColor:anObject[3] ? [CPColor blackColor] : [CPColor grayColor]];
+    var editable = [_auxArray[index] objectForKey:@"keyEditable"];
+    [_keyField setInlineEditable:editable];
+    [_keyField setEditAction:@selector(setKey:)];
+    [_keyField setTextColor:editable ? [CPColor blackColor] : [CPColor grayColor]];
     
-    if([anObject[2] respondsToSelector:@selector(count)])
+    editable = [_value respondsToSelector:@selector(count)];
+    var className = [_value class];
+    
+    if(editable || className == CPData || className == CPDate)
     {
-        [_value setStringValue:@"(" + [anObject[2] count] + " items)"];
-        [_value setInlineEditable:NO];
-        [_value setTextColor:[CPColor grayColor]];
+        if(editable)
+            [_valueField setStringValue:@"(" + [_value count] + " items)"];
+        else
+            [_valueField setStringValue:[_value string]];
+        
+        [_valueField setInlineEditable:NO];
+        [_valueField setTextColor:[CPColor grayColor]];
     }
     else
     {
-        [_value setStringValue:anObject[2]];
-        [_value setInlineEditable:YES];
-        [_value setTextColor:[CPColor blackColor]];
+        [_valueField setStringValue:_value];
+        [_valueField setInlineEditable:YES];
+        [_valueField setTextColor:[CPColor blackColor]];
     }
 }
 
@@ -439,18 +553,6 @@ var AddToolbarItem      = @"AddToolbarItem",
     if(flag)
     {
         [self setBackgroundColor:[CPColor colorWithHexString:@"B5D5FF"]];
-        if([_object[2] respondsToSelector:@selector(count)])
-        {
-            var item = [[[self window] toolbar] items][0];
-            [item setLabel:@"Add Child"];
-            [item setImage:AddChildItemImage];
-        }
-        else
-        {
-            var item = [[[self window] toolbar] items][0];
-            [item setLabel:@"Add Item"];
-            [item setImage:AddItemImage];
-        }
     }
     else
     {
@@ -458,39 +560,45 @@ var AddToolbarItem      = @"AddToolbarItem",
     }
 }
 
-@end
-
-@implementation TextField : CPTextField
+- (void)setKey:(id)sender
 {
-    BOOL    _inlineEditable @accessors(property=inlineEditable);
-}
-
-- (void)mouseDown:(CPEvent)anEvent
-{
-    [[self superview] mouseDown:anEvent];
+    var newValue = [sender stringValue];
     
-    if(_inlineEditable && [anEvent clickCount] > 1)
+    if(_parent && [_parent objectForKey:newValue])
+        [keyExistsAlert runModal];
+    else
     {
-        [self setEditable:YES];
-        [self setBordered:YES];
-        [self setBezeled:YES];
-        [self setBezelStyle:CPTextFieldSquareBezel];
+        if(_parent)
+        {
+            [_parent removeObjectForKey:_key]
+            [_parent setObject:_value forKey:newValue];
+        }
         
-        [super mouseDown:anEvent];
-        
-        [[self window] makeFirstResponder:self];
-        
-        [self selectText:self];
+        _keyArray[index] = [sender stringValue];
+        _key = _keyArray[index];
     }
+    
+    [self updateValues];
+    console.log([_parent allKeys])
 }
 
-- (BOOL)resignFirstResponder
+- (void)setType:(id)sender
 {
-    [self setEditable:NO];
-    [self setBordered:NO];
-    [self setBezeled:NO];
+    var oldClass = [_value class],
+        newClass = [[sender selectedItem] tag];
+
+    if(newClass == CPString)
+    {
+        if(oldClass == CPNumber)
+            _value = [_value stringValue];
+    }
+    else if(newClass == CPNumber)
+    {
+        if(oldClass == CPString)
+            _value = [_value floatValue];
+    }
     
-    return [super resignFirstResponder];
+    [self updateValues];
 }
 
 @end

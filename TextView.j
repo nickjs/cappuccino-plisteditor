@@ -1,5 +1,5 @@
 /*
- * CPTextView.j
+ * TextView.j
  * CPlist Editor
  *
  * Created by Nicholas Small.
@@ -23,7 +23,7 @@
 @import <AppKit/CPView.j>
 
 
-@implementation CPTextView : CPView
+@implementation TextView : CPView
 {
     DOMElement      FIXME_textArea;
     
