@@ -168,6 +168,19 @@ var AddToolbarItem      = @"AddToolbarItem",
     }
 }
 
+- (void)buildPlist
+{
+    [self traversePlist:_plist key:nil parent:nil rowIndex:0];
+    
+    var array = [CPArray array],
+        count = [_keyArray count];
+        
+    for(var i=0; i < count; i++)
+        array[i] = i;
+        
+    [_collection setContent:array];
+}
+
 - (void)resetUI
 {
     [_toolbar setVisible:NO];
@@ -273,15 +286,7 @@ var AddToolbarItem      = @"AddToolbarItem",
         if([CPMenu menuBarTitle] == @"CPlist Editor")
             [CPMenu setMenuBarTitle:@"Plist From String"];
         
-        [self traversePlist:_plist key:nil parent:nil rowIndex:0];
-        
-        var array = [CPArray array],
-            count = [_keyArray count];
-            
-        for(var i=0; i < count; i++)
-            array[i] = i;
-            
-        [_collection setContent:array];
+        [self buildPlist];
         
         [_inputView setHidden:YES];
         [_editorView setHidden:NO];
@@ -638,7 +643,11 @@ var keyExistsAlert = nil;
     if(newValue == _value)
         return;
     
-    _value = ([_value class] == CPNumber) ? [newValue numberValue] : newValue;
+    _valueArray[index] = ([_value class] == CPNumber) ? [newValue numberValue] : newValue;
+    _value = _valueArray[index];
+    
+    if(_parent)
+        [_parent setObject:_value forKey:_key];
     
     [self updateValues];
 }
@@ -651,6 +660,7 @@ var keyExistsAlert = nil;
     if(oldClass == newClass)
         return;
     
+    var rebuild = false;
     if(oldClass == CPDictionary || oldClass == CPArray)
         if(newClass == CPDictionary || newClass == CPArray)
         {
@@ -659,6 +669,7 @@ var keyExistsAlert = nil;
         else
         {
             _value = [CPString stringWithString:@"string"];
+            rebuild = true;
         }
         
     if(newClass == CPString)
@@ -667,7 +678,8 @@ var keyExistsAlert = nil;
         _value = [_value numberValue];
     else if(newClass == CPBoolean)
         _value = [_value booleanValue];
-    
+        
+    // rebuild ? [[CPApp delegate] buildPlist] : [self updateValues];
     [self updateValues];
 }
 
