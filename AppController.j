@@ -211,6 +211,8 @@ var AddToolbarItem      = @"AddToolbarItem",
                             BrowserPlus.FileAccess.Read({file:file},function(args){
                                 [self newDocument:self];
                                 [_stringField setStringValue:args.value];
+                                
+                                [CPMenu setMenuBarTitle:file.name];
                                 // [self submit:self];
                             })
                         }
@@ -268,7 +270,8 @@ var AddToolbarItem      = @"AddToolbarItem",
         _valueArray = [CPArray array];
         _auxArray = [CPArray array];
         
-        [CPMenu setMenuBarTitle:@"Plist From String"];
+        if([CPMenu menuBarTitle] == @"CPlist Editor")
+            [CPMenu setMenuBarTitle:@"Plist From String"];
         
         [self traversePlist:_plist key:nil parent:nil rowIndex:0];
         
