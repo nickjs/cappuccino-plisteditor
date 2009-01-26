@@ -491,6 +491,7 @@ var keyExistsAlert = nil;
     {
         _keyField = [[InlineEditor alloc] initWithFrame:CGRectMake(x, 0.0, 200.0 - x, 20.0)];
         [_keyField setEditTarget:self];
+        [_keyField setEditAction:@selector(setKey:)];
         [self addSubview:_keyField];
     }
     
@@ -515,6 +516,8 @@ var keyExistsAlert = nil;
     if(!_valueField)
     {
         _valueField = [[InlineEditor alloc] initWithFrame:CGRectMake(320.0, 0.0, 500.0, 20.0)];
+        [_valueField setEditTarget:self];
+        [_valueToggle setAction:@selector(setValue:)]
         [self addSubview:_valueField];
     }
     
@@ -528,7 +531,6 @@ var keyExistsAlert = nil;
     
     var editable = [_auxArray[index] objectForKey:@"keyEditable"];
     [_keyField setInlineEditable:editable];
-    [_keyField setEditAction:@selector(setKey:)];
     [_keyField setTextColor:editable ? [CPColor blackColor] : [CPColor grayColor]];
     
     if([_value class] == CPBoolean)
@@ -541,6 +543,7 @@ var keyExistsAlert = nil;
             
             _valueToggle = [[CheckBox alloc] initWithFrame:frame];
             [_valueToggle setTitle:@""];
+            [_valueToggle setTarget:self];
             [self addSubview:_valueToggle];
         }
         
@@ -561,12 +564,14 @@ var keyExistsAlert = nil;
                 [_valueField setStringValue:[_value string]];
             
             [_valueField setInlineEditable:NO];
+            [_valueField setEditAction:nil];
             [_valueField setTextColor:[CPColor grayColor]];
         }
         else
         {
             [_valueField setStringValue:_value];
             [_valueField setInlineEditable:YES];
+            [_valueField setEditAction:@selector(setValue:)]
             [_valueField setTextColor:[CPColor blackColor]];
         }
         
@@ -595,7 +600,7 @@ var keyExistsAlert = nil;
     if(newValue == _key)
         return;
     
-    if(_parent && [_parent objectForKey:newValue])
+    if(_parent && ([_parent objectForKey:newValue] || [_parent objectForKey:newValue] === false))
         [keyExistsAlert runModal];
     else
     {
