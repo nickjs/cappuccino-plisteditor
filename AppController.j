@@ -131,7 +131,6 @@ var AddToolbarItem      = @"AddToolbarItem",
     var aux = [CPDictionary dictionary];
     [aux setObject:theParent forKey:@"parent"];
     [aux setObject:rowIndex forKey:@"rowIndex"];
-    [aux setObject:YES forKey:@"keyEditable"];
     
     if(!aKey)
     {
@@ -142,6 +141,8 @@ var AddToolbarItem      = @"AddToolbarItem",
         else
             aKey = @"Root";
     }
+    else
+        [aux setObject:YES forKey:@"keyEditable"];
     
     if(theObject === true || theObject === false)
         theObject = [CPBoolean booleanWithBoolean:theObject];
@@ -166,6 +167,36 @@ var AddToolbarItem      = @"AddToolbarItem",
         for(var i = 0; i < count; i++)
             [self traversePlist:theObject[i] key:nil parent:theObject rowIndex:rowIndex + 1];
     }
+}
+
+- (id)reverseTraversePlist:(id)theObject index:(int)index
+{
+    if([theObject class] == CPDictionary)
+    {
+        var dict = [CPDictionary dictionary],
+            count = [_auxArray count];
+            
+        for(var i=index; i < count; i++)
+            if([_auxArray[i] objectForKey:@"parent"] == theObject)
+                [dict setObject:[self reverseTraversePlist:_valueArray[i] index:i] forKey:_keyArray[i]];
+        
+        return dict;
+    }
+    else if([theObject class] == CPArray)
+    {
+        var array = [CPArray array],
+            count = [_auxArray count];
+        
+        for(var i=index, k=0; i < count; i++, k++)
+            if([_auxArray[i] objectForKey:@"parent"] == theObject)
+                array[k] = [self reverseTraversePlist:_valueArray[i] index:i];
+        
+        return array;
+    }
+    else if([theObject class] == CPBoolean)
+        return [theObject boolValue];
+    else
+        return theObject;
 }
 
 - (void)buildPlist
@@ -252,10 +283,12 @@ var AddToolbarItem      = @"AddToolbarItem",
 {
     [self resetUI];
     
+    _plist = [self reverseTraversePlist:_valueArray[0] index:0];
+    console.log(_plist)
     var data = [CPPropertyListSerialization dataFromPropertyList:_plist format:_plistType errorDescription:@""];
     [_stringField setStringValue:[data string]];
     
-    window.open('data:text/html;charset=utf-8,'+encodeURIComponent([data string]));
+    // window.open('data:text/html;charset=utf-8,'+encodeURIComponent([data string]));
 }
 
 - (void)submit:(id)sender
