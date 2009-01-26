@@ -67,18 +67,15 @@ var checkboxImage,
 {
     [[self superview] mouseDown:anEvent];
     [super mouseDown:anEvent];
-}
-
-- (void)mouseUp:(CPEvent)anEvent
-{
-    [super mouseUp: anEvent];
     
+    // FIXME: Make mouseUp work
     [self setChecked: !_isChecked];
+    objj_msgSend([self target], [self action], self);
 }
 
 - (BOOL)isChecked
 {
-    return _isChecked;
+    return [CPBoolean booleanWithBoolean:_isChecked];
 }
 
 - (void)setChecked:(BOOL)flag

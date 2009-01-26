@@ -544,6 +544,7 @@ var keyExistsAlert = nil;
             _valueToggle = [[CheckBox alloc] initWithFrame:frame];
             [_valueToggle setTitle:@""];
             [_valueToggle setTarget:self];
+            [_valueToggle setAction:@selector(setValue:)]
             [self addSubview:_valueToggle];
         }
         
@@ -629,7 +630,11 @@ var keyExistsAlert = nil;
 
 - (void)setValue:(id)sender
 {
-    console.log(sender);
+    var newValue = ([sender class] == CheckBox) ? [sender isChecked] : [sender stringValue];
+    
+    if(newValue == _value)
+        return;
+    
 }
 
 - (void)setType:(id)sender
