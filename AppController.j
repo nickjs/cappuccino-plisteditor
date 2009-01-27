@@ -207,7 +207,7 @@ var AddToolbarItem      = @"AddToolbarItem",
         count = [_keyArray count];
         
     for(var i=0; i < count; i++)
-        array[i] = i;
+        array[i] = [_valueArray[i], i];
         
     [_collection setContent:array];
 }
@@ -297,9 +297,7 @@ var AddToolbarItem      = @"AddToolbarItem",
     _plist = nil;
     
     if([_plistString length] == 0)
-    {
         _plist = [CPDictionary dictionary];
-    }
     else
     {
         var data;
@@ -506,13 +504,14 @@ var keyExistsAlert = nil;
     grayColor = [CPColor colorWithHexString:@"CCCCCC"];
 
     keyExistsAlert = [[CPAlert alloc] init];
+    
     [keyExistsAlert setMessageText:@"Key already exists in this parent! Please choose a different key."];
     [keyExistsAlert addButtonWithTitle:@"I'm Sorry"];
 }
 
-- (void)setRepresentedObject:(int)theIndex
+- (void)setRepresentedObject:(id)anObject
 {
-    index = theIndex;
+    index = anObject[1];
     _key = _keyArray[index];
     _value = _valueArray[index];
     
